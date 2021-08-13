@@ -20,7 +20,7 @@
 //! #![feature(allocator_api)]
 //! use std::{ffi::c_void, mem::ManuallyDrop};
 //!
-//! use crate::{
+//! use mimalloc_rust::{
 //!     heap::{HeapVisitor, MiMallocHeap},
 //!     raw::{
 //!         heap::{mi_heap_area_t, mi_heap_delete, mi_heap_new},

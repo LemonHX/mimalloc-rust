@@ -1,17 +1,8 @@
 mod heap;
-use std::{ffi::c_void, mem::ManuallyDrop, println};
 
-use crate::raw::{
-    heap::{mi_heap_area_t, mi_heap_delete},
-    runtime_options::mi_option_show_stats,
-    types::mi_heap_t,
-};
+use crate::raw::runtime_options::mi_option_show_stats;
 
-use crate::{
-    heap::{HeapVisitor, MiMallocHeap},
-    raw::heap::mi_heap_new,
-    with_heap, GlobalMiMalloc,
-};
+use crate::GlobalMiMalloc;
 
 #[global_allocator]
 static GLOBAL_MIMALLOC: GlobalMiMalloc = GlobalMiMalloc;
