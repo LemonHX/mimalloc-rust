@@ -1,11 +1,17 @@
 [package]
-name = "mimalloc-rs"
-version = "0.1.0"
+name = "mimalloc-rust"
+version = "0.1.1"
 edition = "2018"
+repository = "https://github.com/lemonhx/mimalloc-rust"
+description = "the best binding for mimalloc in rust"
+license = "MIT"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = ["mimalloc-rust-sys"]
+
 [dev-dependencies]
 lazy_static = "1.4.0"
+
 [dependencies]
-mimalloc-sys = { path = "./mimalloc-sys" }
+mimalloc-rust-sys = "1.7.2"
 cty = "0.2"

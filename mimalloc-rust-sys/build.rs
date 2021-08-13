@@ -1,6 +1,4 @@
 use std::env;
-extern crate bindgen;
-use std::path::PathBuf;
 
 fn main() {
     let mut build = cc::Build::new();

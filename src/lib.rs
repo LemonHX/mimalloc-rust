@@ -1,16 +1,82 @@
 #![feature(allocator_api)]
 #![cfg_attr(not(test), no_std)]
 
+//! this crate provides the best binding for [mimalloc](https://github.com/microsoft/mimalloc)
+//! # Example Usage
+//! first add to dependencies
+//! ```toml
+//! [dependencies]
+//! mimalloc-rust = "0.1"
+//! ```
+//! then set the global allocator
+//! ```rust
+//! use mimalloc_rust::*;
+//!
+//! #[global_allocator]
+//! static GLOBAL_MIMALLOC: GlobalMiMalloc = GlobalMiMalloc;
+//! ```
+//! # Allocator API!
+//! ```
+//! #![feature(allocator_api)]
+//! use std::{ffi::c_void, mem::ManuallyDrop};
+//!
+//! use crate::{
+//!     heap::{HeapVisitor, MiMallocHeap},
+//!     raw::{
+//!         heap::{mi_heap_area_t, mi_heap_delete, mi_heap_new},
+//!         types::mi_heap_t,
+//!     },
+//!     with_heap, GlobalMiMalloc,
+//! };
+//!
+//! #[derive(Debug, Clone)]
+//! struct TestHeap {
+//!     heap: *mut mi_heap_t,
+//! }
+//! use std::ops::Deref;
+//! impl Deref for TestHeap {
+//!     type Target = *mut mi_heap_t;
+//!
+//!     fn deref(&self) -> &Self::Target {
+//!         &self.heap
+//!     }
+//! }
+//!
+//! impl TestHeap {
+//!     fn new() -> Self {
+//!         Self {
+//!             heap: unsafe { mi_heap_new() },
+//!         }
+//!     }
+//! }
+//!
+//! impl Drop for TestHeap {
+//!     fn drop(&mut self) {
+//!         unsafe { mi_heap_delete(self.heap) }
+//!     }
+//! }
+//!
+//! #[test]
+//! fn test_allocator_api() {
+//!     let allocator = MiMallocHeap::new(TestHeap::new());
+//!     let mut b: Vec<u8, &MiMallocHeap<TestHeap>> = Vec::new_in(&allocator);
+//!     b.push(1);
+//!     b.push(2);
+//!     assert_eq!(b[0], 1);
+//!     assert_eq!(b[1], 2);
+//! }
+//!
+//! ```
+
 #[cfg(test)]
-mod test;
+mod tests;
 
 pub mod heap;
 use cty::c_long;
-use heap::GlobalHeap;
-use heap::MiMallocHeap;
-use heap::MiMallocHeapGlobal;
-pub use mimalloc_sys as sys;
-use sys::types::mi_heap_t;
+use heap::*;
+// the hand writed native binding
+pub use mimalloc_rust_sys as raw;
+use raw::types::mi_heap_t;
 
 use core::{
     alloc::{GlobalAlloc, Layout},
@@ -19,8 +85,8 @@ use core::{
     ops::Deref,
 };
 
-use mimalloc_sys::{aligned_allocation::*, basic_allocation::*, heap::*, runtime_options::*};
-
+use crate::raw::{aligned_allocation::*, basic_allocation::*, heap::*, runtime_options::*};
+/// The global allocator
 pub struct GlobalMiMalloc;
 
 impl Debug for GlobalMiMalloc {
@@ -31,6 +97,7 @@ impl Debug for GlobalMiMalloc {
     }
 }
 impl GlobalMiMalloc {
+    /// replace the global allocator by a heap
     pub fn replace_by<T: Deref<Target = *mut mi_heap_t>>(
         heap: &MiMallocHeap<T>,
     ) -> MiMallocHeapGlobal {
@@ -40,8 +107,7 @@ impl GlobalMiMalloc {
             },
         }
     }
-}
-impl GlobalMiMalloc {
+    /// get the default heap type of the global allocator holds
     pub fn get() -> MiMallocHeapGlobal {
         MiMallocHeap {
             heap: GlobalHeap {

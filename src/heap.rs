@@ -1,13 +1,33 @@
+//! First-class heaps that can be destroyed in one go.
+//!
+//! [furthur documentation](https://microsoft.github.io/mimalloc/group__heap.html#details)
+use crate::raw::{basic_allocation::mi_free, heap::*, types::mi_heap_t};
 use core::{
     alloc::*,
     ffi::c_void,
+    fmt::Debug,
     ops::Deref,
     ptr::{slice_from_raw_parts_mut, NonNull},
 };
-use mimalloc_sys::{basic_allocation::mi_free, heap::*, types::mi_heap_t};
 
+/// Heap type used for allocator API
 pub struct MiMallocHeap<T: Deref<Target = *mut mi_heap_t>> {
     pub heap: T,
+}
+
+impl<T: Deref<Target = *mut mi_heap_t>> MiMallocHeap<T> {
+    pub fn new(heap: T) -> Self {
+        Self { heap }
+    }
+}
+
+impl<T> Debug for MiMallocHeap<T>
+where
+    T: Deref<Target = *mut mi_heap_t> + Debug,
+{
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_fmt(format_args!("{:?}", self.heap))
+    }
 }
 
 impl<T: Deref<Target = *mut mi_heap_t>> From<T> for MiMallocHeap<T> {
@@ -136,6 +156,7 @@ unsafe impl<T: Deref<Target = *mut mi_heap_t>> Allocator for MiMallocHeap<T> {
     }
 }
 
+/// A custom function which visits the Heap
 pub trait HeapVisitor<VisitorName, T: Deref<Target = *mut mi_heap_t>>
 where
     Self: Sized,
@@ -159,6 +180,8 @@ where
         }
     }
 }
+
+/// the default Global Heap Type
 #[derive(Debug, PartialEq, Eq)]
 pub struct GlobalHeap {
     pub heap: *mut mi_heap_t,
@@ -171,7 +194,7 @@ impl Deref for GlobalHeap {
         &self.heap
     }
 }
-
+/// the default Global Heap Type Alias
 pub type MiMallocHeapGlobal = MiMallocHeap<GlobalHeap>;
 
 unsafe extern "C" fn visit_handler<
@@ -189,6 +212,7 @@ unsafe extern "C" fn visit_handler<
     Visitor::visitor(visitor, &*heap, &*area, block, size)
 }
 
+/// a macro which could only be used in single thread condition
 #[macro_export]
 macro_rules! with_heap {
     ($heap: ty, $do: expr) => {{
