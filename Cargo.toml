@@ -1,0 +1,11 @@
+[package]
+name = "mimalloc-rs"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dev-dependencies]
+lazy_static = "1.4.0"
+[dependencies]
+mimalloc-sys = { path = "./mimalloc-sys" }
+cty = "0.2"
