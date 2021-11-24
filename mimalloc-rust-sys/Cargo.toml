@@ -3,7 +3,7 @@ name = "mimalloc-rust-sys"
 description = "mimalloc_rust hand writted sys binding"
 license = "MIT"
 # mimalloc version
-version = "1.7.2"
+version = "1.7.3"
 edition = "2018"
 
 [dependencies]
