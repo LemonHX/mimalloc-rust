@@ -1,14 +1,15 @@
 //! First-class heaps that can be destroyed in one go.
 //!
 //! [furthur documentation](https://microsoft.github.io/mimalloc/group__heap.html#details)
-use crate::raw::{basic_allocation::mi_free, heap::*, types::mi_heap_t};
+#[cfg(feature = "unstable")]
+use crate::raw::basic_allocation::mi_free;
+use crate::raw::{heap::*, types::mi_heap_t};
+#[cfg(feature = "unstable")]
 use core::{
     alloc::*,
-    ffi::c_void,
-    fmt::Debug,
-    ops::Deref,
     ptr::{slice_from_raw_parts_mut, NonNull},
 };
+use core::{ffi::c_void, fmt::Debug, ops::Deref};
 
 /// Heap type used for allocator API
 pub struct MiMallocHeap<T: Deref<Target = *mut mi_heap_t>> {
@@ -36,6 +37,7 @@ impl<T: Deref<Target = *mut mi_heap_t>> From<T> for MiMallocHeap<T> {
     }
 }
 
+#[cfg(feature = "unstable")]
 unsafe impl<T: Deref<Target = *mut mi_heap_t>> Allocator for MiMallocHeap<T> {
     fn allocate(
         &self,
