@@ -1,6 +1,6 @@
 [package]
 name = "mimalloc-rust"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2018"
 repository = "https://github.com/lemonhx/mimalloc-rust"
 description = "the best binding for mimalloc in rust"
