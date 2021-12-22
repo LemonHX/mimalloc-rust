@@ -1,12 +1,12 @@
 use std::process::Command;
-fn main(){
-        let status = Command::new("git")
+fn main() {
+    let status = Command::new("git")
         .args(&["submodule", "update", "--init", "--recursive"])
         .status();
     match status {
         Ok(status) => {
             if !status.success() {
-                panic!("failed to update git submodule due to {:?}",status);
+                panic!("failed to update git submodule due to {:?}", status);
             }
         }
         Err(err) => {

@@ -17,6 +17,7 @@ pub struct MiMallocHeap<T: Deref<Target = *mut mi_heap_t>> {
 }
 
 impl<T: Deref<Target = *mut mi_heap_t>> MiMallocHeap<T> {
+    #[inline]
     pub fn new(heap: T) -> Self {
         Self { heap }
     }
@@ -39,6 +40,7 @@ impl<T: Deref<Target = *mut mi_heap_t>> From<T> for MiMallocHeap<T> {
 
 #[cfg(feature = "unstable")]
 unsafe impl<T: Deref<Target = *mut mi_heap_t>> Allocator for MiMallocHeap<T> {
+    #[inline]
     fn allocate(
         &self,
         layout: Layout,
@@ -55,10 +57,12 @@ unsafe impl<T: Deref<Target = *mut mi_heap_t>> Allocator for MiMallocHeap<T> {
         }
     }
 
+    #[inline]
     unsafe fn deallocate(&self, ptr: core::ptr::NonNull<u8>, _layout: Layout) {
         mi_free(ptr.as_ptr() as *mut _)
     }
 
+    #[inline]
     fn allocate_zeroed(&self, layout: Layout) -> Result<NonNull<[u8]>, core::alloc::AllocError> {
         unsafe {
             let mem = mi_heap_zalloc_aligned(*self.heap.deref(), layout.size(), layout.align());
@@ -72,6 +76,7 @@ unsafe impl<T: Deref<Target = *mut mi_heap_t>> Allocator for MiMallocHeap<T> {
         }
     }
 
+    #[inline]
     unsafe fn grow(
         &self,
         ptr: NonNull<u8>,
@@ -98,6 +103,7 @@ unsafe impl<T: Deref<Target = *mut mi_heap_t>> Allocator for MiMallocHeap<T> {
         }
     }
 
+    #[inline]
     unsafe fn grow_zeroed(
         &self,
         ptr: NonNull<u8>,
@@ -124,6 +130,7 @@ unsafe impl<T: Deref<Target = *mut mi_heap_t>> Allocator for MiMallocHeap<T> {
         }
     }
 
+    #[inline]
     unsafe fn shrink(
         &self,
         ptr: NonNull<u8>,
@@ -150,6 +157,7 @@ unsafe impl<T: Deref<Target = *mut mi_heap_t>> Allocator for MiMallocHeap<T> {
         }
     }
 
+    #[inline]
     fn by_ref(&self) -> &Self
     where
         Self: Sized,
@@ -170,6 +178,7 @@ where
         block: *mut c_void,
         size: usize,
     ) -> bool;
+
     fn visit(&mut self, heap: &MiMallocHeap<T>) {
         unsafe {
             let heap: *mut mi_heap_t = *heap.heap.deref();
@@ -192,6 +201,7 @@ pub struct GlobalHeap {
 impl Deref for GlobalHeap {
     type Target = *mut mi_heap_t;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.heap
     }
@@ -199,6 +209,7 @@ impl Deref for GlobalHeap {
 /// the default Global Heap Type Alias
 pub type MiMallocHeapGlobal = MiMallocHeap<GlobalHeap>;
 
+#[inline]
 unsafe extern "C" fn visit_handler<
     VisitorName,
     T: Deref<Target = *mut mi_heap_t>,

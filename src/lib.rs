@@ -98,6 +98,7 @@ impl Debug for GlobalMiMalloc {
 }
 impl GlobalMiMalloc {
     /// replace the global allocator by a heap
+    #[inline]
     pub fn replace_by<T: Deref<Target = *mut mi_heap_t>>(
         heap: &MiMallocHeap<T>,
     ) -> MiMallocHeapGlobal {
@@ -107,7 +108,9 @@ impl GlobalMiMalloc {
             },
         }
     }
+
     /// get the default heap type of the global allocator holds
+    #[inline]
     pub fn get() -> MiMallocHeapGlobal {
         MiMallocHeap {
             heap: GlobalHeap {
@@ -115,27 +118,43 @@ impl GlobalMiMalloc {
             },
         }
     }
+
+    #[inline]
     pub fn option_disable(option: mi_option_t) {
         unsafe { mi_option_disable(option) }
     }
+
+    #[inline]
     pub fn option_enable(option: mi_option_t) {
         unsafe { mi_option_enable(option) }
     }
+
+    #[inline]
     pub fn option_get(option: mi_option_t) -> c_long {
         unsafe { mi_option_get(option) }
     }
+
+    #[inline]
     pub fn option_is_enabled(option: mi_option_t) -> bool {
         unsafe { mi_option_is_enabled(option) }
     }
+
+    #[inline]
     pub fn option_set(option: mi_option_t, value: c_long) {
         unsafe { mi_option_set(option, value) }
     }
+
+    #[inline]
     pub fn option_set_default(option: mi_option_t, value: c_long) {
         unsafe { mi_option_set_default(option, value) }
     }
+
+    #[inline]
     pub fn option_set_enabled(option: mi_option_t) {
         unsafe { mi_option_set_enabled(option) }
     }
+
+    #[inline]
     pub fn option_set_enabled_default(option: mi_option_t) {
         unsafe { mi_option_set_enabled_default(option) }
     }

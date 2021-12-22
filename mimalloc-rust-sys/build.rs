@@ -1,4 +1,4 @@
-use std::{env};
+use std::env;
 
 fn main() {
     let mut build = cc::Build::new();
