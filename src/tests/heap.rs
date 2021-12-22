@@ -66,6 +66,7 @@ impl HeapVisitor<General, TestHeap> for LeakDetector {
     }
 }
 
+#[cfg(feature = "unstable")]
 #[test]
 fn test_allocator_api() {
     let allocator = MiMallocHeap::new(TestHeap::new());
