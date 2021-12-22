@@ -12,6 +12,9 @@ members = ["mimalloc-rust-sys"]
 [dev-dependencies]
 lazy_static = "1.4.0"
 
+[features]
+unstable = []
+
 [dependencies]
 mimalloc-rust-sys = {path="./mimalloc-rust-sys", version = "1.7.3"}
 cty = "0.2"

@@ -1,4 +1,4 @@
-#![feature(allocator_api)]
+#![cfg_attr(feature = "unstable", feature(allocator_api))]
 #![cfg_attr(not(test), no_std)]
 
 //! this crate provides the best binding for [mimalloc](https://github.com/microsoft/mimalloc)
