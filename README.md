@@ -1,5 +1,5 @@
 # The Best and Highest-Leveled and Newest bingding for MiMalloc Ever Existed in Rust
-> mimalloc 1.7.2 stable
+> mimalloc 1.7.3 stable
 
 ![ci](https://github.com/LemonHX/mimalloc-rust/actions/workflows/rust.yml/badge.svg)
 
