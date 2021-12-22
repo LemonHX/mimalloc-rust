@@ -1,6 +1,6 @@
 [package]
 name = "mimalloc-rust"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2018"
 repository = "https://github.com/lemonhx/mimalloc-rust"
 description = "the best binding for mimalloc in rust"
@@ -16,5 +16,5 @@ lazy_static = "1.4.0"
 unstable = []
 
 [dependencies]
-mimalloc-rust-sys = {path="./mimalloc-rust-sys", version = "1.7.3"}
+mimalloc-rust-sys = {path="./mimalloc-rust-sys", version = "1.7.3-source"}
 cty = "0.2"

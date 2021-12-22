@@ -3,9 +3,9 @@ use std::env;
 fn main() {
     let mut build = cc::Build::new();
 
-    build.include("c_src/mimalloc/include");
-    build.include("c_src/mimalloc/src");
-    build.file("c_src/mimalloc/src/static.c");
+    build.include("./mimalloc/include");
+    build.include("./mimalloc/src");
+    build.file("./mimalloc/src/static.c");
 
     let target_os = env::var("CARGO_CFG_TARGET_OS").expect("target_os not defined!");
     let target_family = env::var("CARGO_CFG_TARGET_FAMILY").expect("target_family not defined!");
