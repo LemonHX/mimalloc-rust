@@ -35,17 +35,17 @@ static inline size_t mi_bitmap_mask_(size_t count, size_t bitidx) {
 }
 
 
-
 /* -----------------------------------------------------------
   Claim a bit sequence atomically
 ----------------------------------------------------------- */
 
 // Try to atomically claim a sequence of `count` bits in a single
 // field at `idx` in `bitmap`. Returns `true` on success.
-bool _mi_bitmap_try_find_claim_field(mi_bitmap_t bitmap, size_t idx, const size_t count, mi_bitmap_index_t* bitmap_idx)
+inline bool _mi_bitmap_try_find_claim_field(mi_bitmap_t bitmap, size_t idx, const size_t count, mi_bitmap_index_t* bitmap_idx)
 {
   mi_assert_internal(bitmap_idx != NULL);
   mi_assert_internal(count <= MI_BITMAP_FIELD_BITS);
+  mi_assert_internal(count > 0);
   mi_bitmap_field_t* field = &bitmap[idx];
   size_t map  = mi_atomic_load_relaxed(field);
   if (map==MI_BITMAP_FIELD_FULL) return false; // short cut
@@ -94,9 +94,9 @@ bool _mi_bitmap_try_find_claim_field(mi_bitmap_t bitmap, size_t idx, const size_
   return false;
 }
 
-
+// Find `count` bits of 0 and set them to 1 atomically; returns `true` on success.
 // Starts at idx, and wraps around to search in all `bitmap_fields` fields.
-// For now, `count` can be at most MI_BITMAP_FIELD_BITS and will never cross fields.
+// `count` can be at most MI_BITMAP_FIELD_BITS and will never cross fields.
 bool _mi_bitmap_try_find_from_claim(mi_bitmap_t bitmap, const size_t bitmap_fields, const size_t start_field_idx, const size_t count, mi_bitmap_index_t* bitmap_idx) {
   size_t idx = start_field_idx;
   for (size_t visited = 0; visited < bitmap_fields; visited++, idx++) {
@@ -118,7 +118,7 @@ bool _mi_bitmap_try_find_claim(mi_bitmap_t bitmap, const size_t bitmap_fields, c
 
 // Set `count` bits at `bitmap_idx` to 0 atomically
 // Returns `true` if all `count` bits were 1 previously.
-bool mi_bitmap_unclaim(mi_bitmap_t bitmap, size_t bitmap_fields, size_t count, mi_bitmap_index_t bitmap_idx) {
+bool _mi_bitmap_unclaim(mi_bitmap_t bitmap, size_t bitmap_fields, size_t count, mi_bitmap_index_t bitmap_idx) {
   const size_t idx = mi_bitmap_index_field(bitmap_idx);
   const size_t bitidx = mi_bitmap_index_bit_in_field(bitmap_idx);
   const size_t mask = mi_bitmap_mask_(count, bitidx);
@@ -215,7 +215,7 @@ static bool mi_bitmap_try_find_claim_field_across(mi_bitmap_t bitmap, size_t bit
   
   // intermediate fields
   while (++field < final_field) {
-    newmap = mi_bitmap_mask_(MI_BITMAP_FIELD_BITS, 0);
+    newmap = MI_BITMAP_FIELD_FULL;
     map = 0;
     if (!mi_atomic_cas_strong_acq_rel(field, &map, newmap)) { goto rollback; }
   }
@@ -236,7 +236,7 @@ rollback:
   // roll back intermediate fields
   while (--field > initial_field) {
     newmap = 0;
-    map = mi_bitmap_mask_(MI_BITMAP_FIELD_BITS, 0);
+    map = MI_BITMAP_FIELD_FULL;
     mi_assert_internal(mi_atomic_load_relaxed(field) == map);
     mi_atomic_store_release(field, newmap);
   }

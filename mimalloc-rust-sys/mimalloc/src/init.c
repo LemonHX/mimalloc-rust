@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
-Copyright (c) 2018-2021, Microsoft Research, Daan Leijen
+Copyright (c) 2018-2022, Microsoft Research, Daan Leijen
 This is free software; you can redistribute it and/or modify it under the
 terms of the MIT license. A copy of the license can be found in the file
 "LICENSE" at the root of this distribution.
@@ -28,6 +28,9 @@ const mi_page_t _mi_page_empty = {
   ATOMIC_VAR_INIT(0), // xthread_free
   ATOMIC_VAR_INIT(0), // xheap
   NULL, NULL
+  #if MI_INTPTR_SIZE==8
+  , { 0 }  // padding
+  #endif
 };
 
 #define MI_PAGE_EMPTY() ((mi_page_t*)&_mi_page_empty)
@@ -54,8 +57,8 @@ const mi_page_t _mi_page_empty = {
     QNULL( 10240), QNULL( 12288), QNULL( 14336), QNULL( 16384), QNULL( 20480), QNULL( 24576), QNULL( 28672), QNULL( 32768), /* 56 */ \
     QNULL( 40960), QNULL( 49152), QNULL( 57344), QNULL( 65536), QNULL( 81920), QNULL( 98304), QNULL(114688), QNULL(131072), /* 64 */ \
     QNULL(163840), QNULL(196608), QNULL(229376), QNULL(262144), QNULL(327680), QNULL(393216), QNULL(458752), QNULL(524288), /* 72 */ \
-    QNULL(MI_LARGE_OBJ_WSIZE_MAX + 1  /* 655360, Huge queue */), \
-    QNULL(MI_LARGE_OBJ_WSIZE_MAX + 2) /* Full queue */ }
+    QNULL(MI_MEDIUM_OBJ_WSIZE_MAX + 1  /* 655360, Huge queue */), \
+    QNULL(MI_MEDIUM_OBJ_WSIZE_MAX + 2) /* Full queue */ }
 
 #define MI_STAT_COUNT_NULL()  {0,0,0,0}
 
@@ -77,6 +80,18 @@ const mi_page_t _mi_page_empty = {
   { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 },     \
   { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } \
   MI_STAT_COUNT_END_NULL()
+
+
+// Empty slice span queues for every bin
+#define SQNULL(sz)  { NULL, NULL, sz }
+#define MI_SEGMENT_SPAN_QUEUES_EMPTY \
+  { SQNULL(1), \
+    SQNULL(     1), SQNULL(     2), SQNULL(     3), SQNULL(     4), SQNULL(     5), SQNULL(     6), SQNULL(     7), SQNULL(    10), /*  8 */ \
+    SQNULL(    12), SQNULL(    14), SQNULL(    16), SQNULL(    20), SQNULL(    24), SQNULL(    28), SQNULL(    32), SQNULL(    40), /* 16 */ \
+    SQNULL(    48), SQNULL(    56), SQNULL(    64), SQNULL(    80), SQNULL(    96), SQNULL(   112), SQNULL(   128), SQNULL(   160), /* 24 */ \
+    SQNULL(   192), SQNULL(   224), SQNULL(   256), SQNULL(   320), SQNULL(   384), SQNULL(   448), SQNULL(   512), SQNULL(   640), /* 32 */ \
+    SQNULL(   768), SQNULL(   896), SQNULL(  1024) /* 35 */ }
+
 
 // --------------------------------------------------------
 // Statically allocate an empty heap as the initial
@@ -102,6 +117,17 @@ mi_decl_cache_align const mi_heap_t _mi_heap_empty = {
   false
 };
 
+#define tld_empty_stats  ((mi_stats_t*)((uint8_t*)&tld_empty + offsetof(mi_tld_t,stats)))
+#define tld_empty_os     ((mi_os_tld_t*)((uint8_t*)&tld_empty + offsetof(mi_tld_t,os)))
+
+mi_decl_cache_align static const mi_tld_t tld_empty = {
+  0,
+  false,
+  NULL, NULL,
+  { MI_SEGMENT_SPAN_QUEUES_EMPTY, 0, 0, 0, 0, 0, 0, NULL, tld_empty_stats, tld_empty_os }, // segments
+  { 0, tld_empty_stats }, // os
+  { MI_STATS_NULL }       // stats
+};
 
 // the thread-local default heap for allocation
 mi_decl_thread mi_heap_t* _mi_heap_default = (mi_heap_t*)&_mi_heap_empty;
@@ -110,11 +136,8 @@ extern mi_heap_t _mi_heap_main;
 
 static mi_tld_t tld_main = {
   0, false,
-  &_mi_heap_main, &_mi_heap_main,
-  { { NULL, NULL }, {NULL ,NULL}, {NULL ,NULL, 0},
-    0, 0, 0, 0, 0, 0, NULL,
-    &tld_main.stats, &tld_main.os
-  }, // segments
+  &_mi_heap_main, & _mi_heap_main,
+  { MI_SEGMENT_SPAN_QUEUES_EMPTY, 0, 0, 0, 0, 0, 0, NULL, &tld_main.stats, &tld_main.os }, // segments
   { 0, &tld_main.stats },  // os
   { MI_STATS_NULL }       // stats
 };
@@ -190,6 +213,7 @@ static bool _mi_heap_init(void) {
     // OS allocated so already zero initialized
     mi_tld_t*  tld = &td->tld;
     mi_heap_t* heap = &td->heap;
+    _mi_memcpy_aligned(tld, &tld_empty, sizeof(*tld));
     _mi_memcpy_aligned(heap, &_mi_heap_empty, sizeof(*heap));
     heap->thread_id = _mi_thread_id();
     _mi_random_init(&heap->random);
@@ -241,7 +265,10 @@ static bool _mi_heap_done(mi_heap_t* heap) {
 
   // free if not the main thread
   if (heap != &_mi_heap_main) {
-    mi_assert_internal(heap->tld->segments.count == 0 || heap->thread_id != _mi_thread_id());
+    // the following assertion does not always hold for huge segments as those are always treated
+    // as abondened: one may allocate it in one thread, but deallocate in another in which case
+    // the count can be too large or negative. todo: perhaps not count huge segments? see issue #363
+    // mi_assert_internal(heap->tld->segments.count == 0 || heap->thread_id != _mi_thread_id());
     _mi_os_free(heap, sizeof(mi_thread_data_t), &_mi_stats_main);
   }
 #if 0  
@@ -275,12 +302,6 @@ static bool _mi_heap_done(mi_heap_t* heap) {
 
 static void _mi_thread_done(mi_heap_t* default_heap);
 
-#ifdef __wasi__
-// no pthreads in the WebAssembly Standard Interface
-#elif !defined(_WIN32)
-#define MI_USE_PTHREADS
-#endif
-
 #if defined(_WIN32) && defined(MI_SHARED_LIB)
   // nothing to do as it is done in DllMain
 #elif defined(_WIN32) && !defined(MI_SHARED_LIB)
@@ -300,7 +321,6 @@ static void _mi_thread_done(mi_heap_t* default_heap);
 #elif defined(MI_USE_PTHREADS)
   // use pthread local storage keys to detect thread ending
   // (and used with MI_TLS_PTHREADS for the default heap)
-  #include <pthread.h>
   pthread_key_t _mi_heap_default_key = (pthread_key_t)(-1);
   static void mi_pthread_done(void* value) {
     if (value!=NULL) _mi_thread_done((mi_heap_t*)value);
@@ -453,7 +473,9 @@ static void mi_process_load(void) {
   MI_UNUSED(dummy);
   #endif
   os_preloading = false;
-  atexit(&mi_process_done);
+  #if !(defined(_WIN32) && defined(MI_SHARED_LIB))  // use Dll process detach (see below) instead of atexit (issue #521)
+  atexit(&mi_process_done);  
+  #endif
   _mi_options_init();
   mi_process_init();
   //mi_stats_reset();-
@@ -500,6 +522,14 @@ void mi_process_init(void) mi_attr_noexcept {
   #endif
   _mi_verbose_message("secure level: %d\n", MI_SECURE);
   mi_thread_init();
+
+  #if defined(_WIN32) && !defined(MI_SHARED_LIB)
+  // When building as a static lib the FLS cleanup happens to early for the main thread.
+  // To avoid this, set the FLS value for the main thread to NULL so the fls cleanup
+  // will not call _mi_thread_done on the (still executing) main thread. See issue #508.
+  FlsSetValue(mi_fls_key, NULL);
+  #endif
+
   mi_stats_reset();  // only call stat reset *after* thread init (or the heap tld == NULL)
 
   if (mi_option_is_enabled(mi_option_reserve_huge_os_pages)) {
@@ -514,7 +544,7 @@ void mi_process_init(void) mi_attr_noexcept {
   if (mi_option_is_enabled(mi_option_reserve_os_memory)) {
     long ksize = mi_option_get(mi_option_reserve_os_memory);
     if (ksize > 0) {
-      mi_reserve_os_memory((size_t)ksize*MI_KiB, true, true);
+      mi_reserve_os_memory((size_t)ksize*MI_KiB, true /* commit? */, true /* allow large pages? */);
     }
   }
 }
@@ -529,15 +559,16 @@ static void mi_process_done(void) {
   process_done = true;
 
   #if defined(_WIN32) && !defined(MI_SHARED_LIB)
-  FlsSetValue(mi_fls_key, NULL);  // don't call main-thread callback
-  FlsFree(mi_fls_key);            // call thread-done on all threads to prevent dangling callback pointer if statically linked with a DLL; Issue #208
+  FlsFree(mi_fls_key);  // call thread-done on all threads (except the main thread) to prevent dangling callback pointer if statically linked with a DLL; Issue #208
   #endif
   
-  #if (MI_DEBUG != 0) || !defined(MI_SHARED_LIB)  
-  // free all memory if possible on process exit. This is not needed for a stand-alone process
-  // but should be done if mimalloc is statically linked into another shared library which
-  // is repeatedly loaded/unloaded, see issue #281.
-  mi_collect(true /* force */ );
+  #ifndef MI_SKIP_COLLECT_ON_EXIT
+    #if (MI_DEBUG != 0) || !defined(MI_SHARED_LIB)  
+    // free all memory if possible on process exit. This is not needed for a stand-alone process
+    // but should be done if mimalloc is statically linked into another shared library which
+    // is repeatedly loaded/unloaded, see issue #281.
+    mi_collect(true /* force */ );
+    #endif
   #endif
 
   if (mi_option_is_enabled(mi_option_show_stats) || mi_option_is_enabled(mi_option_verbose)) {
@@ -558,11 +589,34 @@ static void mi_process_done(void) {
     if (reason==DLL_PROCESS_ATTACH) {
       mi_process_load();
     }
-    else if (reason==DLL_THREAD_DETACH) {
-      if (!mi_is_redirected()) mi_thread_done();
+    else if (reason==DLL_PROCESS_DETACH) {
+      mi_process_done();
     }
+    else if (reason==DLL_THREAD_DETACH) {
+      if (!mi_is_redirected()) {
+        mi_thread_done();
+      }
+    }    
     return TRUE;
   }
+
+#elif defined(_MSC_VER)
+  // MSVC: use data section magic for static libraries
+  // See <https://www.codeguru.com/cpp/misc/misc/applicationcontrol/article.php/c6945/Running-Code-Before-and-After-Main.htm>
+  static int _mi_process_init(void) {
+    mi_process_load();
+    return 0;
+  }
+  typedef int(*_mi_crt_callback_t)(void);
+  #if defined(_M_X64) || defined(_M_ARM64)
+    __pragma(comment(linker, "/include:" "_mi_msvc_initu"))
+    #pragma section(".CRT$XIU", long, read)
+  #else
+    __pragma(comment(linker, "/include:" "__mi_msvc_initu"))
+  #endif
+  #pragma data_seg(".CRT$XIU")
+  mi_decl_externc _mi_crt_callback_t _mi_msvc_initu[] = { &_mi_process_init };
+  #pragma data_seg()
 
 #elif defined(__cplusplus)
   // C++: use static initialization to detect process start
@@ -577,24 +631,6 @@ static void mi_process_done(void) {
   static void __attribute__((constructor)) _mi_process_init(void) {
     mi_process_load();
   }
-
-#elif defined(_MSC_VER)
-  // MSVC: use data section magic for static libraries
-  // See <https://www.codeguru.com/cpp/misc/misc/applicationcontrol/article.php/c6945/Running-Code-Before-and-After-Main.htm>
-  static int _mi_process_init(void) {
-    mi_process_load();
-    return 0;
-  }
-  typedef int(*_crt_cb)(void);
-  #if defined(_M_X64) || defined(_M_ARM64)
-    __pragma(comment(linker, "/include:" "_mi_msvc_initu"))
-    #pragma section(".CRT$XIU", long, read)
-  #else
-    __pragma(comment(linker, "/include:" "__mi_msvc_initu"))
-  #endif
-  #pragma data_seg(".CRT$XIU")
-  _crt_cb _mi_msvc_initu[] = { &_mi_process_init };
-  #pragma data_seg()
 
 #else
 #pragma message("define a way to call mi_process_load on your platform")

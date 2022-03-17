@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
-Copyright (c) 2018-2021, Microsoft Research, Daan Leijen
+Copyright (c) 2018-2022, Microsoft Research, Daan Leijen
 This is free software; you can redistribute it and/or modify it under the
 terms of the MIT license. A copy of the license can be found in the file
 "LICENSE" at the root of this distribution.
@@ -324,11 +324,11 @@ static void mi_stat_free(const mi_page_t* page, const mi_block_t* block) {
 static void mi_stat_huge_free(const mi_page_t* page) {
   mi_heap_t* const heap = mi_heap_get_default();
   const size_t bsize = mi_page_block_size(page); // to match stats in `page.c:mi_page_huge_alloc`
-  if (bsize <= MI_HUGE_OBJ_SIZE_MAX) {
-    mi_heap_stat_decrease(heap, huge, bsize);
+  if (bsize <= MI_LARGE_OBJ_SIZE_MAX) {
+    mi_heap_stat_decrease(heap, large, bsize);
   }
   else {
-    mi_heap_stat_decrease(heap, giant, bsize);
+    mi_heap_stat_decrease(heap, huge, bsize);
   }
 }
 #else
@@ -353,8 +353,8 @@ static mi_decl_noinline void _mi_free_block_mt(mi_page_t* page, mi_block_t* bloc
   #endif
 
   // huge page segments are always abandoned and can be freed immediately
-  mi_segment_t* const segment = _mi_page_segment(page);
-  if (segment->page_kind==MI_PAGE_HUGE) {
+  mi_segment_t* segment = _mi_page_segment(page);
+  if (segment->kind==MI_SEGMENT_HUGE) {
     mi_stat_huge_free(page);
     _mi_segment_huge_page_free(segment, page, block);
     return;
@@ -475,19 +475,18 @@ static inline mi_segment_t* mi_checked_ptr_segment(const void* p, const char* ms
   return segment;
 }
 
-
-// Free a block
+// Free a block 
 void mi_free(void* p) mi_attr_noexcept
 {
-  const mi_segment_t* const segment = mi_checked_ptr_segment(p,"mi_free");
+  mi_segment_t* const segment = mi_checked_ptr_segment(p,"mi_free");
   if (mi_unlikely(segment == NULL)) return; 
 
-  const mi_threadid_t tid = _mi_thread_id();
+  mi_threadid_t tid = _mi_thread_id();
   mi_page_t* const page = _mi_segment_page_of(segment, p);
-  mi_block_t* const block = (mi_block_t*)p;
-
+  
   if (mi_likely(tid == mi_atomic_load_relaxed(&segment->thread_id) && page->flags.full_aligned == 0)) {  // the thread id matches and it is not a full page, nor has aligned blocks
     // local, and not full or aligned
+    mi_block_t* block = (mi_block_t*)(p);
     if (mi_unlikely(mi_check_is_double_free(page,block))) return;
     mi_check_padding(page, block);
     mi_stat_free(page, block);
