@@ -1,5 +1,5 @@
 # The Best and Highest-Leveled and Newest bingding for MiMalloc Ever Existed in Rust
-> mimalloc 1.7.3 stable
+> mimalloc 1.7.6 stable
 
 ![ci](https://github.com/LemonHX/mimalloc-rust/actions/workflows/rust.yml/badge.svg)
 
@@ -12,7 +12,7 @@ in repo `https://github.com/purpleprotocol/mimalloc_rust` i didn't see any data 
 first add to dependencies
 ```toml
 [dependencies]
-mimalloc-rust = "0.1"
+mimalloc-rust = "0.2"
 ```
 then set the global allocator
 ```rust

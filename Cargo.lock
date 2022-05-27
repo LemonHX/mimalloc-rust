@@ -22,7 +22,7 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "mimalloc-rust"
-version = "0.1.5"
+version = "0.2.0"
 dependencies = [
  "cty",
  "lazy_static",
@@ -31,7 +31,7 @@ dependencies = [
 
 [[package]]
 name = "mimalloc-rust-sys"
-version = "1.7.3-source"
+version = "1.7.6-source"
 dependencies = [
  "cc",
  "cty",

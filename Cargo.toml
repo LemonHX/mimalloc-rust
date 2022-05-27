@@ -1,7 +1,7 @@
 [package]
 name = "mimalloc-rust"
-version = "0.1.5"
-edition = "2018"
+version = "0.2.0"
+edition = "2021"
 repository = "https://github.com/lemonhx/mimalloc-rust"
 description = "the best binding for mimalloc in rust"
 license = "MIT"
@@ -14,7 +14,11 @@ lazy_static = "1.4.0"
 
 [features]
 unstable = []
+local-dynamic-tls = ["mimalloc-rust-sys/local-dynamic-tls"]
+secure = ["mimalloc-rust-sys/secure"]
+asm = ["mimalloc-rust-sys/asm"]
+skip-collect-on-exit = ["mimalloc-rust-sys/skip-collect-on-exit"]
 
 [dependencies]
-mimalloc-rust-sys = {path="./mimalloc-rust-sys", version = "1.7.3-source"}
+mimalloc-rust-sys = {path="./mimalloc-rust-sys", version = "1.7.6-source"}
 cty = "0.2"

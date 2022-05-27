@@ -6,6 +6,7 @@ fn main() {
     build.include("./mimalloc/include");
     build.include("./mimalloc/src");
     build.file("./mimalloc/src/static.c");
+    build.define("MI_BUILD_SHARED", "0");
 
     let target_os = env::var("CARGO_CFG_TARGET_OS").expect("target_os not defined!");
     let target_family = env::var("CARGO_CFG_TARGET_FAMILY").expect("target_family not defined!");
@@ -14,20 +15,32 @@ fn main() {
         // Overriding malloc is only available on windows in shared mode, but we
         // only ever build a static lib.
         if target_family != "windows" {
-            build.define("MI_MALLOC_OVERRIDE", None);
+            build.define("MI_MALLOC_OVERRIDE", "0");
         }
     }
 
-    if env::var_os("CARGO_FEATURE_SECURE").is_some() {
+    #[cfg(feature = "secure")]
+    {
         build.define("MI_SECURE", "4");
     }
 
-    let dynamic_tls = env::var("CARGO_FEATURE_LOCAL_DYNAMIC_TLS").is_ok();
+    #[cfg(feature = "asm")]
+    {
+        build.flag_if_supported("-save-temps");
+    }
+
+    #[cfg(feature = "skip-collect-on-exit")]
+    {
+        build.define("MI_SKIP_COLLECT_ON_EXIT", "1");
+    }
 
     if target_family == "unix" && target_os != "haiku" {
-        if dynamic_tls {
+        #[cfg(feature = "local-dynamic-tls")]
+        {
             build.flag_if_supported("-ftls-model=local-dynamic");
-        } else {
+        }
+        #[cfg(not(feature = "local-dynamic-tls"))]
+        {
             build.flag_if_supported("-ftls-model=initial-exec");
         }
     }
@@ -35,9 +48,9 @@ fn main() {
     // Remove heavy debug assertions etc
     let profile = std::env::var("PROFILE").unwrap();
     match profile.as_str() {
-        "debug" => build.define("MI_DEBUG", "3"),
-        "release" => build.define("MI_DEBUG", "0"),
-        _ => build.define("MI_DEBUG", "3"),
+        "debug" => build.define("MI_DEBUG_FUL", "3"),
+        "release" => build.define("MI_DEBUG_FUL", "0").define("MI_DEBUG", "0"),
+        _ => build.define("MI_DEBUG_FUL", "3"),
     };
 
     if build.get_compiler().is_like_msvc() {
