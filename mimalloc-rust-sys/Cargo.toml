@@ -3,8 +3,18 @@ name = "mimalloc-rust-sys"
 description = "mimalloc_rust hand writted sys binding"
 license = "MIT"
 # mimalloc version
-version = "1.7.3-source"
-edition = "2018"
+version = "1.7.6-source"
+edition = "2021"
+
+[features]
+# Use slightly slower, dlopen-compatible TLS mechanism (Unix)
+local-dynamic-tls = []
+# Use full security mitigations (like guard pages, allocation randomization, double-free mitigation, and free-list corruption detection)
+secure = []
+# Generate assembly files
+asm = []
+# Skip collecting memory on program exit
+skip-collect-on-exit = []
 
 [dependencies]
 cty = "0.2"
