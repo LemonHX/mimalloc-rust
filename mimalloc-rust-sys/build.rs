@@ -3,10 +3,14 @@ use std::env;
 fn main() {
     let mut build = cc::Build::new();
 
-    build.include("./mimalloc/include");
-    build.include("./mimalloc/src");
-    build.file("./mimalloc/src/static.c");
-    build.define("MI_BUILD_SHARED", "0");
+    build
+        .include("./mimalloc/include")
+        .include("./mimalloc/src")
+        .file("./mimalloc/src/static.c")
+        .define("MI_BUILD_SHARED", "0")
+        .cpp(false)
+        .warnings(false)
+        .flag_if_supported("-w");
 
     let target_os = env::var("CARGO_CFG_TARGET_OS").expect("target_os not defined!");
     let target_family = env::var("CARGO_CFG_TARGET_FAMILY").expect("target_family not defined!");

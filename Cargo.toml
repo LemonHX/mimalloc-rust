@@ -1,6 +1,6 @@
 [package]
 name = "mimalloc-rust"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 repository = "https://github.com/lemonhx/mimalloc-rust"
 description = "the best binding for mimalloc in rust"
@@ -20,5 +20,5 @@ asm = ["mimalloc-rust-sys/asm"]
 skip-collect-on-exit = ["mimalloc-rust-sys/skip-collect-on-exit"]
 
 [dependencies]
-mimalloc-rust-sys = {path="./mimalloc-rust-sys", version = "1.7.6-source"}
+mimalloc-rust-sys = {path="./mimalloc-rust-sys", version = "1.7.9-source"}
 cty = "0.2"

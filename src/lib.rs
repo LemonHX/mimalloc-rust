@@ -6,7 +6,7 @@
 //! first add to dependencies
 //! ```toml
 //! [dependencies]
-//! mimalloc-rust = "0.1"
+//! mimalloc-rust = "0.2"
 //! ```
 //! then set the global allocator
 //! ```rust
