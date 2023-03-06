@@ -195,8 +195,7 @@ static bool os_random_buf(void* buf, size_t buf_len) {
 #elif defined(__APPLE__)
 #include <AvailabilityMacros.h>
 #if defined(MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_10
-#include <CommonCrypto/CommonCryptoError.h>
-#include <CommonCrypto/CommonRandom.h>
+#include <CommonCrypto.h>
 #endif
 static bool os_random_buf(void* buf, size_t buf_len) {
   #if defined(MAC_OS_X_VERSION_10_15) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_15
