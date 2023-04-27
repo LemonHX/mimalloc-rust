@@ -1,7 +1,9 @@
 # The Best and Highest-Leveled and Newest binding for MiMalloc Ever Existed in Rust
-> mimalloc 1.7.6 stable
+> mimalloc 1.7.9 stable
 
 ![ci](https://github.com/LemonHX/mimalloc-rust/actions/workflows/rust.yml/badge.svg)
+[![doc.rs](https://docs.rs/mimalloc-rust/badge.svg)](https://docs.rs/mimalloc-rust)
+[![crates.io](https://img.shields.io/crates/v/mimalloc-rust.svg)](https://crates.io/crates/mimalloc-rust)
 
 ## Why create this
 
@@ -12,7 +14,7 @@ in repo `https://github.com/purpleprotocol/mimalloc_rust` i didn't see any data 
 first add to dependencies
 ```toml
 [dependencies]
-mimalloc-rust = "0.2"
+mimalloc-rust = "0.2.1"
 ```
 then set the global allocator
 ```rust
