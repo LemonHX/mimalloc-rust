@@ -52,9 +52,9 @@ fn main() {
     // Remove heavy debug assertions etc
     let profile = std::env::var("PROFILE").unwrap();
     match profile.as_str() {
-        "debug" => build.define("MI_DEBUG_FUL", "3"),
-        "release" => build.define("MI_DEBUG_FUL", "0").define("MI_DEBUG", "0"),
-        _ => build.define("MI_DEBUG_FUL", "3"),
+        "debug" => build.define("MI_DEBUG_FULL", "3"),
+        "release" => build.define("MI_DEBUG_FULL", "0").define("MI_DEBUG", "0"),
+        _ => build.define("MI_DEBUG_FULL", "3"),
     };
 
     if build.get_compiler().is_like_msvc() {
