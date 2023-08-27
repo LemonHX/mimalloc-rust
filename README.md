@@ -1,5 +1,6 @@
 # The Best and Highest-Leveled and Newest binding for MiMalloc Ever Existed in Rust
-> mimalloc 1.7.9 stable
+
+> mimalloc 2.1.2 stable
 
 ![ci](https://github.com/LemonHX/mimalloc-rust/actions/workflows/rust.yml/badge.svg)
 [![doc.rs](https://docs.rs/mimalloc-rust/badge.svg)](https://docs.rs/mimalloc-rust)

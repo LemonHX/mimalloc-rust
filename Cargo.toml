@@ -20,5 +20,5 @@ asm = ["mimalloc-rust-sys/asm"]
 skip-collect-on-exit = ["mimalloc-rust-sys/skip-collect-on-exit"]
 
 [dependencies]
-mimalloc-rust-sys = {path="./mimalloc-rust-sys", version = "1.7.9-source"}
+mimalloc-rust-sys = {path="./mimalloc-rust-sys", version = "2.1.2-source"}
 cty = "0.2"
