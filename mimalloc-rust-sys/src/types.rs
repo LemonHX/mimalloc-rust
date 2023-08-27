@@ -33,47 +33,35 @@ pub struct mi_page_t {
 impl mi_page_t {
     #[inline]
     pub fn segment_in_use(&self) -> u8 {
-        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+        self._bitfield_1.get(0usize, 1u8) as u8
     }
     #[inline]
     pub fn set_segment_in_use(&mut self, val: u8) {
-        unsafe {
-            let val: u8 = ::core::mem::transmute(val);
-            self._bitfield_1.set(0usize, 1u8, val as u64)
-        }
+        self._bitfield_1.set(0usize, 1u8, val as u64)
     }
     #[inline]
     pub fn is_reset(&self) -> u8 {
-        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
+        self._bitfield_1.get(1usize, 1u8) as u8
     }
     #[inline]
     pub fn set_is_reset(&mut self, val: u8) {
-        unsafe {
-            let val: u8 = ::core::mem::transmute(val);
-            self._bitfield_1.set(1usize, 1u8, val as u64)
-        }
+        self._bitfield_1.set(1usize, 1u8, val as u64)
     }
     #[inline]
     pub fn is_committed(&self) -> u8 {
-        unsafe { ::core::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u8) }
+        self._bitfield_1.get(2usize, 1u8) as u8
     }
     #[inline]
     pub fn set_is_committed(&mut self, val: u8) {
-        unsafe {
-            let val: u8 = ::core::mem::transmute(val);
-            self._bitfield_1.set(2usize, 1u8, val as u64)
-        }
+        self._bitfield_1.set(2usize, 1u8, val as u64)
     }
     #[inline]
     pub fn is_zero_init(&self) -> u8 {
-        unsafe { ::core::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u8) }
+        self._bitfield_1.get(3usize, 1u8) as u8
     }
     #[inline]
     pub fn set_is_zero_init(&mut self, val: u8) {
-        unsafe {
-            let val: u8 = ::core::mem::transmute(val);
-            self._bitfield_1.set(3usize, 1u8, val as u64)
-        }
+        self._bitfield_1.set(3usize, 1u8, val as u64)
     }
     #[inline]
     pub fn new_bitfield_1(
@@ -83,57 +71,33 @@ impl mi_page_t {
         is_zero_init: u8,
     ) -> BitField<[u8; 1usize]> {
         let mut _bitfield_unit: BitField<[u8; 1usize]> = Default::default();
-        _bitfield_unit.set(0usize, 1u8, {
-            let segment_in_use: u8 = unsafe { ::core::mem::transmute(segment_in_use) };
-            segment_in_use as u64
-        });
-        _bitfield_unit.set(1usize, 1u8, {
-            let is_reset: u8 = unsafe { ::core::mem::transmute(is_reset) };
-            is_reset as u64
-        });
-        _bitfield_unit.set(2usize, 1u8, {
-            let is_committed: u8 = unsafe { ::core::mem::transmute(is_committed) };
-            is_committed as u64
-        });
-        _bitfield_unit.set(3usize, 1u8, {
-            let is_zero_init: u8 = unsafe { ::core::mem::transmute(is_zero_init) };
-            is_zero_init as u64
-        });
+        _bitfield_unit.set(0usize, 1u8, segment_in_use as u64);
+        _bitfield_unit.set(1usize, 1u8, is_reset as u64);
+        _bitfield_unit.set(2usize, 1u8, is_committed as u64);
+        _bitfield_unit.set(3usize, 1u8, is_zero_init as u64);
         _bitfield_unit
     }
     #[inline]
     pub fn is_zero(&self) -> u8 {
-        unsafe { ::core::mem::transmute(self._bitfield_2.get(0usize, 1u8) as u8) }
+        self._bitfield_2.get(0usize, 1u8) as u8
     }
     #[inline]
     pub fn set_is_zero(&mut self, val: u8) {
-        unsafe {
-            let val: u8 = ::core::mem::transmute(val);
-            self._bitfield_2.set(0usize, 1u8, val as u64)
-        }
+        self._bitfield_2.set(0usize, 1u8, val as u64)
     }
     #[inline]
     pub fn retire_expire(&self) -> u8 {
-        unsafe { ::core::mem::transmute(self._bitfield_2.get(1usize, 7u8) as u8) }
+        self._bitfield_2.get(1usize, 7u8) as u8
     }
     #[inline]
     pub fn set_retire_expire(&mut self, val: u8) {
-        unsafe {
-            let val: u8 = ::core::mem::transmute(val);
-            self._bitfield_2.set(1usize, 7u8, val as u64)
-        }
+        self._bitfield_2.set(1usize, 7u8, val as u64)
     }
     #[inline]
     pub fn new_bitfield_2(is_zero: u8, retire_expire: u8) -> BitField<[u8; 1usize]> {
         let mut _bitfield_unit: BitField<[u8; 1usize]> = Default::default();
-        _bitfield_unit.set(0usize, 1u8, {
-            let is_zero: u8 = unsafe { ::core::mem::transmute(is_zero) };
-            is_zero as u64
-        });
-        _bitfield_unit.set(1usize, 7u8, {
-            let retire_expire: u8 = unsafe { ::core::mem::transmute(retire_expire) };
-            retire_expire as u64
-        });
+        _bitfield_unit.set(0usize, 1u8, is_zero as u64);
+        _bitfield_unit.set(1usize, 7u8, retire_expire as u64);
         _bitfield_unit
     }
 }
@@ -165,37 +129,25 @@ pub struct mi_page_flags_t_ty_1 {
 impl mi_page_flags_t_ty_1 {
     #[inline]
     pub fn in_full(&self) -> u8 {
-        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+        self._bitfield_1.get(0usize, 1u8) as u8
     }
     #[inline]
     pub fn set_in_full(&mut self, val: u8) {
-        unsafe {
-            let val: u8 = ::core::mem::transmute(val);
-            self._bitfield_1.set(0usize, 1u8, val as u64)
-        }
+        self._bitfield_1.set(0usize, 1u8, val as u64)
     }
     #[inline]
     pub fn has_aligned(&self) -> u8 {
-        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
+        self._bitfield_1.get(1usize, 1u8) as u8
     }
     #[inline]
     pub fn set_has_aligned(&mut self, val: u8) {
-        unsafe {
-            let val: u8 = ::core::mem::transmute(val);
-            self._bitfield_1.set(1usize, 1u8, val as u64)
-        }
+        self._bitfield_1.set(1usize, 1u8, val as u64)
     }
     #[inline]
     pub fn new_bitfield_1(in_full: u8, has_aligned: u8) -> BitField<[u8; 1usize]> {
         let mut _bitfield_unit: BitField<[u8; 1usize]> = Default::default();
-        _bitfield_unit.set(0usize, 1u8, {
-            let in_full: u8 = unsafe { ::core::mem::transmute(in_full) };
-            in_full as u64
-        });
-        _bitfield_unit.set(1usize, 1u8, {
-            let has_aligned: u8 = unsafe { ::core::mem::transmute(has_aligned) };
-            has_aligned as u64
-        });
+        _bitfield_unit.set(0usize, 1u8, in_full as u64);
+        _bitfield_unit.set(1usize, 1u8, has_aligned as u64);
         _bitfield_unit
     }
 }
