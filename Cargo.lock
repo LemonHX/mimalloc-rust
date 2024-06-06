@@ -31,7 +31,7 @@ dependencies = [
 
 [[package]]
 name = "mimalloc-rust-sys"
-version = "1.7.9-source"
+version = "2.1.2-source"
 dependencies = [
  "cc",
  "cty",
